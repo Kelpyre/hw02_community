@@ -11,7 +11,7 @@ class PostAdmin(admin.ModelAdmin):
         'pub_date',
         'author',
         'group'
-        )
+    )
     # Позволяем изменять группу из поста
     list_editable = ('group',)
     # Добавляем интерфейс для поиска по тексту постов
