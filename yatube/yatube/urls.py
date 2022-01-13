@@ -18,6 +18,6 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # импорт правил из приложения posts
+    # Импорт правил из приложения posts
     path('', include('posts.urls', namespace='posts'))
 ]

@@ -1,4 +1,5 @@
 from django.contrib import admin
+# Импорт моделей для регистрации в админке
 from .models import Post, Group
 
 
@@ -24,4 +25,5 @@ class PostAdmin(admin.ModelAdmin):
 # При регистрации модели Post источником конфигурации для неё назначаем
 # класс PostAdmin
 admin.site.register(Post, PostAdmin)
+# Регистрируем модель Group
 admin.site.register(Group)

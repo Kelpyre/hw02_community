@@ -22,14 +22,18 @@ def index(request):
         request,
         template,
         context,
-        )
+    )
 
 
 def group_list(request, slug):
     template = 'posts/group_list.html'
     title = slug
     description = f'Посты группы {slug} проекта Yatube'
+    # Конструкция вернет объект или вызовет 404 ошибку
     group_name = get_object_or_404(Group, slug=slug)
+    # В переменную posts будет сохранена выборка из 10 объектов модели Post,
+    # отсортированных по имени группы и по полю pub_date по убыванию
+    # (от больших значений к меньшим)
     posts = Post.objects.filter(group=group_name).order_by('-pub_date')[:10]
     context = {
         'title': title,

@@ -1,8 +1,10 @@
 # posts/models.py
 
+# Импорт моделей для создания дочерних классов
 from django.db import models
 from django.contrib.auth import get_user_model
 
+# Импорт модели User для связи в классе Post
 User = get_user_model()
 
 
@@ -11,6 +13,7 @@ class Group(models.Model):
     slug = models.SlugField(unique=True)
     description = models.TextField()
 
+# Объявление специальной функции для корректного отображения в админке
     def __str__(self) -> str:
         return self.title
 
@@ -18,11 +21,13 @@ class Group(models.Model):
 class Post(models.Model):
     text = models.TextField()
     pub_date = models.DateTimeField(auto_now_add=True)
+    # Связь с моделью User, с удалением при удалении
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='posts'
     )
+    # Связь с моделью Group, с пустым значением при удалении
     group = models.ForeignKey(
         Group,
         on_delete=models.SET_NULL,

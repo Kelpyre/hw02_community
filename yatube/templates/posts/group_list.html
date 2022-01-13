@@ -1,11 +1,16 @@
 <!-- templates/posts/group_list.html -->
+
+<!-- Добавление в базовый шаблон через extends -->>
 {% extends 'base.html' %}
+<!-- Блок с импортом заголовка из view-функции -->>
 {% block title %}
   {{ title }}
 {% endblock %}
 {% block content %}
-  <div class="container py-5">     
+  <div class="container py-5">
+    <!-- Импорт описания из view-функции -->>    
     <h1>{{ description }}</h1>
+    <!-- Цикл, который перебирает все записи, поданные на вход -->>
     {% for post in posts %}
     <ul>
       <li>
