@@ -4,13 +4,9 @@
 {% endblock %}
 {% block content %}
   <h1>{{ title }}</h1>
-  <p>
-    {{ description }}
-  </p>
+  <p>{{ description }}</p>
   {% for post in posts %}
-    <article>
-      {% include 'includes/article.html' %}
-    </article>
+    {% include 'includes/article.html' %}
     {% if not forloop.last %}<hr>{% endif %}
   {% endfor %}
 {% endblock %}
