@@ -8,7 +8,7 @@
     </li>
   </ul>
   <p>{{ post.text }}</p>
-  {% if post.group and page == 'index' %}
+  {% if post.group and request.path == '/' %}
     <a href="{% url 'posts:group_list' post.group.slug %}">все записи группы</a>
   {% endif %}
 </article>

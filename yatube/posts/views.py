@@ -13,14 +13,12 @@ def index(request: HttpRequest) -> HttpResponse:
     """Функция вызова главной страницы."""
     template: str = 'posts/index.html'
     title: str = 'Последние обновления на сайте'
-    page: str = 'index'
     description: str = 'Главная страница проекта Yatube'
     posts: QuerySet = Post.objects.all()[:POSTS_COUNT]
     context: dict[str, Union[str, QuerySet]] = {
         'title': title,
         'description': description,
         'posts': posts,
-        'page': page
     }
     return render(
         request,
