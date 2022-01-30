@@ -1,12 +1,14 @@
 from typing import Union
 
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import redirect, render, get_object_or_404
 from django.db.models.query import QuerySet
 from django.http import HttpRequest, Http404, HttpResponse
 from django.core.paginator import Paginator, Page
 from django.utils.text import Truncator
+from django.contrib.auth.decorators import login_required
 
 from .models import Post, Group, User
+from .forms import PostForm
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -30,6 +32,7 @@ def index(request: HttpRequest) -> HttpResponse:
     )
 
 
+@login_required
 def group_list(request: HttpRequest, slug: str) -> HttpResponse:
     """Функция вызова страницы группы."""
     group_name: Union[Group, Http404] = get_object_or_404(
@@ -56,6 +59,7 @@ def group_list(request: HttpRequest, slug: str) -> HttpResponse:
     )
 
 
+@login_required
 def profile(request, username):
     # Здесь код запроса к модели и создание словаря контекста
     template = 'posts/profile.html'
@@ -74,6 +78,7 @@ def profile(request, username):
     return render(request, template, context)
 
 
+@login_required
 def post_detail(request, post_id):
     WORD_COUNT = 30
     # Здесь код запроса к модели и создание словаря контекста
@@ -88,3 +93,30 @@ def post_detail(request, post_id):
         'posts_count': posts_count,
     }
     return render(request, template, context)
+
+
+@login_required
+def post_create(request):
+    template = 'posts/create_post.html'
+    title = 'Новый пост'
+    if request.method == 'POST':
+        form = PostForm(request.POST)
+        if form.is_valid():
+            added_post = form.save(commit=False)
+            added_post.author = request.user
+            form.save(commit=True)
+            author = request.user
+            return redirect('posts:profile', author)
+        else:
+            return render(request, template, {
+                'form': form,
+                'title': title,
+                }
+            )
+
+    form = PostForm()
+    return render(request, template, {
+        'form': form,
+        'title': title,
+        }
+    )

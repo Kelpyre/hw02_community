@@ -16,12 +16,12 @@ urlpatterns = [
         LoginView.as_view(template_name='users/login.html'),
         name='login'
     ),
-    path(
-        'password_reset/',
-        PasswordResetView.as_view(
-            template_name='users/password_reset_form.html'
-        ),
-        name='password_reset'
-    ),
+    #path(
+    #    'password_reset/',
+    #    PasswordResetView.as_view(
+    #        template_name='users/password_reset_form.html'
+    #    ),
+    #    name='password_reset'
+    #),
     path('signup/', views.SignUp.as_view(), name='signup'),
 ]
