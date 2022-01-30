@@ -21,10 +21,8 @@
                     </div>
                   {% endfor %}
               {% endif %}
-
               <form method="post" action="{% url 'users:signup' %}">
               {% csrf_token %}
-
               {% for field in form %} 
                 <div class="form-group row my-3">
                   <label for="{{ field.id_for_label }}">
@@ -38,7 +36,6 @@
                       <small 
                          id="{{ field.id_for_label }}-help"
                          class="form-text text-muted"
-                      >
                         {{ field.help_text|safe }}
                       </small>
                     {% endif %}
