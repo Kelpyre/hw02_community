@@ -10,14 +10,17 @@ from django.contrib.auth.decorators import login_required
 from .models import Post, Group, User
 from .forms import PostForm
 
+WORD_COUNT = 30
+POST_COUNT = 10
+
 
 def index(request: HttpRequest) -> HttpResponse:
     """Функция вызова главной страницы."""
     template: str = 'posts/index.html'
     title: str = 'Последние обновления на сайте'
     description: str = 'Главная страница проекта Yatube'
-    posts: QuerySet = Post.objects.all()
-    paginator: Paginator = Paginator(posts, 10)
+    posts: QuerySet = Post.objects.select_related('author')
+    paginator: Paginator = Paginator(posts, POST_COUNT)
     page_number: Union[str, None] = request.GET.get('page')
     page_obj: Page = paginator.get_page(page_number)
     context: dict[str, Union[str, Page]] = {
@@ -43,7 +46,7 @@ def group_list(request: HttpRequest, slug: str) -> HttpResponse:
     title: str = f'Записи сообщества {group_name}'
     posts: QuerySet = group_name.posts.all()
     description: str = group_name.description
-    paginator: Paginator = Paginator(posts, 10)
+    paginator: Paginator = Paginator(posts, POST_COUNT)
     page_number: Union[str, None] = request.GET.get('page')
     page_obj: Page = paginator.get_page(page_number)
     context: dict[str, Union[str, Page, Group]] = {
@@ -60,34 +63,34 @@ def group_list(request: HttpRequest, slug: str) -> HttpResponse:
 
 
 @login_required
-def profile(request, username):
-    # Здесь код запроса к модели и создание словаря контекста
-    template = 'posts/profile.html'
-    author = get_object_or_404(User, username=username)
-    posts = author.posts.all()
-    posts_count = posts.count()
-    title = f'Профайл пользователя {username}'
-    paginator: Paginator = Paginator(posts, 10)
+def profile(request: HttpRequest, username: str) -> HttpResponse:
+    """Функция вызова страницы пользователя"""
+    template: str = 'posts/profile.html'
+    author: Union[User, Http404] = get_object_or_404(User, username=username)
+    posts: QuerySet = author.posts.all()
+    title: str = f'Профайл пользователя {username}'
+    paginator: Paginator = Paginator(posts, POST_COUNT)
     page_number: Union[str, None] = request.GET.get('page')
     page_obj: Page = paginator.get_page(page_number)
-    context = {
+    context: dict[str, Union[str, Page, User]] = {
         'title': title,
         'page_obj': page_obj,
-        'posts_count': posts_count,
+        'author': author,
     }
     return render(request, template, context)
 
 
 @login_required
-def post_detail(request, post_id):
-    WORD_COUNT = 30
-    # Здесь код запроса к модели и создание словаря контекста
-    template = 'posts/post_detail.html'
-    post = get_object_or_404(Post, pk=post_id)
-    posts_count = Post.objects.select_related('author').count()
+def post_detail(request: HttpRequest, post_id: int) -> HttpResponse:
+    """Функция вызова страницы поста"""
+    template: str = 'posts/post_detail.html'
+    post: Union[Post, Http404] = get_object_or_404(Post, pk=post_id)
+    author: str = post.author
+    post_author: QuerySet = Post.objects.filter(author=author)
+    posts_count: int = post_author.count()
     first_30 = Truncator(post.text).words(WORD_COUNT)
-    title = f'Пост {first_30}'
-    context = {
+    title: str = f'Пост {first_30}'
+    context: dict[str, Union[str, Post, int]] = {
         'title': title,
         'post': post,
         'posts_count': posts_count,
@@ -96,27 +99,42 @@ def post_detail(request, post_id):
 
 
 @login_required
-def post_create(request):
-    template = 'posts/create_post.html'
-    title = 'Новый пост'
-    if request.method == 'POST':
-        form = PostForm(request.POST)
+def post_create(request: HttpRequest) -> HttpResponse:
+    """Функция вызова страницы создания поста"""
+    template: str = 'posts/create_post.html'
+    title: str = 'Добавить запись'
+    form: PostForm = PostForm(request.POST or None)
+    if form.is_valid():
+        added_post = form.save(commit=False)
+        added_post.author = request.user
+        form.save(commit=True)
+        return redirect('posts:profile', added_post.author)
+    context: dict[str, Union[str, PostForm]] = {
+        'form': form,
+        'title': title,
+    }
+    return render(request, template, context)
+
+
+@login_required
+def post_edit(request: HttpRequest, post_id: int) -> HttpResponse:
+    """Функция вызова страницы редактирования поста"""
+    template: str = 'posts/create_post.html'
+    title: str = 'Редактировать запись'
+    post = get_object_or_404(Post, pk=post_id)
+    if post.author == request.user:
+        form: PostForm = PostForm(request.POST or None, instance=post)
         if form.is_valid():
             added_post = form.save(commit=False)
             added_post.author = request.user
             form.save(commit=True)
-            author = request.user
-            return redirect('posts:profile', author)
-        else:
-            return render(request, template, {
-                'form': form,
-                'title': title,
-                }
-            )
-
-    form = PostForm()
-    return render(request, template, {
-        'form': form,
-        'title': title,
+            return redirect('posts:post_detail', post_id=post_id)
+        context: dict[str, Union[str, bool, PostForm, int]] = {
+            'form': form,
+            'title': title,
+            'is_edit': True,
+            'post_id': post_id
         }
-    )
+        return render(request, template, context)
+    else:
+        return redirect('posts:post_detail', post_id=post_id)
